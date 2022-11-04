@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, user-scalable=no">
+  <meta name="description" content="API docs for the backgroundMessageHandler function from the main library, for the Dart programming language.">
+  <title>backgroundMessageHandler function - main library - Dart API</title>
+
+
+  
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  
+  <link rel="stylesheet" href="../static-assets/github.css?v1">
+  <link rel="stylesheet" href="../static-assets/styles.css?v1">
+  <link rel="icon" href="../static-assets/favicon.png?v1">
+
+  
+</head>
+
+
+<body data-base-href="../"
+      data-using-base-href="false">
+
+<div id="overlay-under-drawer"></div>
+
+<header id="title">
+  <button id="sidenav-left-toggle" type="button">&nbsp;</button>
+  <ol class="breadcrumbs gt-separated dark hidden-xs">
+    <li><a href="../index.html">sms_camera</a></li>
+    <li><a href="../main/main-library.html">main</a></li>
+    <li class="self-crumb">backgroundMessageHandler function</li>
+  </ol>
+  <div class="self-name">backgroundMessageHandler</div>
+  <form class="search navbar-right" role="search">
+    <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+</header>
+
+<main>
+
+
+  <div id="dartdoc-main-content" class="main-content">
+      <div>
+<h1><span class="kind-function">backgroundMessageHandler</span> function 
+    <a href="https://dart.dev/null-safety" class="feature feature-null-safety" title="Supports the null safety language feature.">Null safety</a>
+ 
+</h1></div>
+
+    <section class="multi-line-signature">
+        
+
+<span class="returntype">dynamic</span>
+<span class="name ">backgroundMessageHandler</span>(<wbr><ol class="parameter-list"><li><span class="parameter" id="backgroundMessageHandler-param-message"><span class="type-annotation"><a href="https://pub.dev/documentation/telephony/0.2.0/telephony/SmsMessage-class.html">SmsMessage</a></span> <span class="parameter-name">message</span></span></li>
+</ol>)
+
+    </section>
+    
+
+
+    
+<section class="summary source-code" id="source">
+  <h2><span>Implementation</span></h2>
+  <pre class="language-dart"><code class="language-dart">backgroundMessageHandler(SmsMessage message) async {
+  &#47;&#47; ignore: non_constant_identifier_names
+  NotificationManager Notifmanager = NotificationManager();
+  if (globals.kDebugMode) {
+    &#47;&#47; ignore: avoid_print
+    print(&quot;Messaggio ricevuto in background: ${message.body}&quot;);
+  }
+  switch (message.body?.split(&#39; &#39;)[0]) {
+    case &#39;TAKE_PHOTO&#39;:
+      if (globals.kDebugMode) {
+        &#47;&#47; ignore: avoid_print
+        print(&quot;TAKE_PHOTO&quot;);
+      }
+      if (globals.fun.switchTakePhoto) {
+        Camera().shot(
+            message); &#47;&#47; scatta la foto e invia un sms di conferma al richiedente
+      }
+      break;
+    case &quot;SND_PHOTO&quot;:
+      if (globals.kDebugMode) {
+        &#47;&#47; ignore: avoid_print
+        print(&quot;SND_PHOTO&quot;);
+      }
+
+      if (globals.fun.switchSendPhoto) {
+        PhotoSender().send(message); &#47;&#47; carica la foto
+      }
+      break;
+
+    case &quot;START_REC&quot;:
+      if (globals.kDebugMode) {
+        &#47;&#47; ignore: avoid_print
+        print(&quot;START_REC&quot;);
+      }
+      if (globals.fun.switchRec) {
+        initState(); &#47;&#47; inizializza il recorder
+        var words = message.body?.split(&#39; &#39;);
+        String password = words![1];
+        bool result = await checkpassword(password);
+        if (result) {
+          recorder._record();
+          if (globals.kDebugMode) {
+            &#47;&#47; ignore: avoid_print
+            print(&quot;Recording started&quot;);
+          }
+          if (globals.fun.switchNotifications) {
+            Notifmanager.notify(&quot;Recorder&quot;, &quot;Recorder started&quot;);
+          }
+          sending_SMS(&quot;Recording started&quot;, message.address!);
+        }
+      }
+      break;
+    case &quot;STOP_REC&quot;:
+      &#47;&#47; ignore: avoid_print
+      print(&quot;STOP_REC&quot;);
+      var words = message.body?.split(&#39; &#39;);
+      String password = words![1];
+      bool result = await checkpassword(password);
+      if (result) {
+        recorder._stop(message.address!);
+        if (globals.kDebugMode) {
+          &#47;&#47; ignore: avoid_print
+          print(&quot;Recording stopped&quot;);
+        }
+        dispose(); &#47;&#47; disattiva (libera) il recorder
+
+      }
+      break;
+
+    case &quot;PLAY&quot;:
+      if (globals.kDebugMode) {
+        &#47;&#47; ignore: avoid_print
+        print(&quot;PLAY&quot;);
+      }
+      if (globals.fun.switchPlay) {
+        var words = message.body?.split(&#39; &#39;);
+        String fileName = words![1];
+        String password = words[2];
+        bool result = await checkpassword(password);
+        if (result) {
+          try {
+            audioPlayer.playaudio(fileName);
+            sending_SMS(&quot;Playing $fileName&quot;, message.address!);
+          } catch (e) {
+            sending_SMS(&quot;Having trouble playing $fileName&quot;, message.address!);
+            if (globals.kDebugMode) {
+              &#47;&#47; ignore: avoid_print
+              print(e);
+            }
+          }
+        }
+      }
+      break;
+    case &quot;STOP_PLAY&quot;:
+      if (globals.kDebugMode) {
+        &#47;&#47; ignore: avoid_print
+        print(&quot;STOP_PLAY&quot;);
+      }
+      var words = message.body?.split(&#39; &#39;);
+      String password = words![1];
+      bool result = await checkpassword(password);
+      if (result) {
+        try {
+          audioPlayer.stopaudio();
+          sending_SMS(&quot;Playing stopped&quot;, message.address!);
+        } catch (e) {
+          sending_SMS(&quot;Having trouble stopping audio&quot;, message.address!);
+          if (globals.kDebugMode) {
+            &#47;&#47; ignore: avoid_print
+            print(e);
+          }
+        }
+      }
+      break;
+    default:
+      if (globals.kDebugMode) {
+        &#47;&#47; ignore: avoid_print
+        print(&quot;Messaggio non gestito&quot;);
+      }
+      break;
+  }
+}</code></pre>
+</section>
+
+
+  </div> <!-- /.main-content -->
+
+  <div id="dartdoc-sidebar-left" class="sidebar sidebar-offcanvas-left">
+    <header id="header-search-sidebar" class="hidden-l">
+  <form class="search-sidebar" role="search">
+    <input type="text" id="search-sidebar" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+</header>
+
+<ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
+  <li><a href="../index.html">sms_camera</a></li>
+  <li><a href="../main/main-library.html">main</a></li>
+  <li class="self-crumb">backgroundMessageHandler function</li>
+</ol>
+
+
+    <h5>main library</h5>
+    <ol>
+  <li class="section-title"><a href="../main/main-library.html#classes">Classes</a></li>
+  <li><a href="../main/AudioPlayer_-class.html">AudioPlayer_</a></li>
+  <li><a href="../main/AudioRecorder-class.html">AudioRecorder</a></li>
+  <li><a href="../main/Camera-class.html">Camera</a></li>
+  <li><a href="../main/HomePage-class.html">HomePage</a></li>
+  <li><a href="../main/NotificationManager-class.html">NotificationManager</a></li>
+  <li><a href="../main/PhotoSender-class.html">PhotoSender</a></li>
+  <li><a href="../main/SMSCamera-class.html">SMSCamera</a></li>
+
+
+
+
+  <li class="section-title"><a href="../main/main-library.html#properties">Properties</a></li>
+  <li><a href="../main/address.html">address</a></li>
+  <li><a href="../main/audioPlayer.html">audioPlayer</a></li>
+  <li><a href="../main/photoPath.html">photoPath</a></li>
+  <li><a href="../main/recorder.html">recorder</a></li>
+  <li><a href="../main/telephony.html">telephony</a></li>
+
+  <li class="section-title"><a href="../main/main-library.html#functions">Functions</a></li>
+  <li><a href="../main/backgroundMessageHandler.html">backgroundMessageHandler</a></li>
+  <li><a href="../main/checkpassword.html">checkpassword</a></li>
+  <li><a href="../main/dispose.html">dispose</a></li>
+  <li><a href="../main/initState.html">initState</a></li>
+  <li><a href="../main/main.html">main</a></li>
+  <li><a href="../main/readPWD.html">readPWD</a></li>
+  <li><a href="../main/requestPermissions.html">requestPermissions</a></li>
+  <li><a href="../main/sending_SMS.html">sending_SMS</a></li>
+  <li><a href="../main/storePWD.html">storePWD</a></li>
+
+
+
+</ol>
+
+  </div><!--/.sidebar-offcanvas-left-->
+
+  <div id="dartdoc-sidebar-right" class="sidebar sidebar-offcanvas-right">
+  </div><!--/.sidebar-offcanvas-->
+
+</main>
+
+<footer>
+  <span class="no-break">
+    sms_camera
+      1.0.0+1
+  </span>
+
+  
+</footer>
+
+
+
+<script src="../static-assets/highlight.pack.js?v1"></script>
+<script src="../static-assets/script.js?v1"></script>
+
+
+
+</body>
+
+</html>
+
