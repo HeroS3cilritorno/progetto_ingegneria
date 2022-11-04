@@ -7,5 +7,7 @@
 # Per visualizzare la documentazione, impartire i comandi 
  `
 $ dart pub global activate dhttpd
+
 $ dhttpd --path doc/api
  `
+# oppure accedere qui https://doc-smscamera.netlify.app/
